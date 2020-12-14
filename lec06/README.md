@@ -2,7 +2,7 @@
 
 この演習ではDirect Memory Access : DMAについて取り扱う．
 
-DMAは簡潔に言えばCPUを用いない送受信の手法であり，UARTでの受信を例に上げると，通常の受信では
+DMAは簡潔に言えばCPUを用いないペリフェラルとメモリ間の送受信の手法であり，UARTでの受信を例に上げると，通常の受信では
 
 1. CPUがペリフェラルからReadし，レジスタに格納
 2. レジスタに取得した値をCPUがメモリに格納
@@ -15,9 +15,9 @@ DMAは簡潔に言えばCPUを用いない送受信の手法であり，UARTで�
 とCPUを介さずに処理することができる．これにより，CPUは送受信にリソースを割くことなく演算に集中できるという恩恵が得られる．
 データが垂れ流されているのを受信し，編集して送信といった処理であれば必須の処理とも言える．
 
-今回はそんなDMAを用いて，PCからの入力を受信し，半分埋まるごとにPCに送信という処理を作成する．
+今回はそんなDMAを用いて，PCからの入力を受信し，半分埋まるごとにPCに送信という処理を実装する．
 
-## CubeMXでの設定
+## ハードウェア設定画面での設定
 
 1. 左部[Connectivity]>[USART2]の[DMA Settings]をクリック
 2. 下部の[Add]をクリックし，[USART2_RX]を選択
@@ -25,7 +25,7 @@ DMAは簡潔に言えばCPUを用いない送受信の手法であり，UARTで�
 
 ![dma](img/dma_setting.png)
 
-## SW4STM32でのコーディング
+## ソフトウェア部のコーディング
 
 まず初めに確認して貰いたい点が，```main```関数内の```/* Initialize all configured peripherals */```だ．
 
@@ -84,10 +84,65 @@ __weak void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 ```
 
 ```__weak```を消して再定義することで上書きすることができる．つまり，この```HAL_UART_RxCpltCallback```を用いてDMA完了時に割り込みを発生させ特定の処理ができる．
+この割り込みを用いて，まずメモリが埋まるごとに```HAL_UART_Transmit```でPCのターミナルに出力する処理を実装する．
 
-この割り込みを用いて，メモリが埋まるごとに```HAL_UART_Transmit```でPCのターミナルに出力する処理を書き，実行してください．
 
-# 課題6
+```c
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+uint8_t buf[100] = {};
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	HAL_UART_Transmit( &huart2 , buf , sizeof(buf) , 0xffff );
+}
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
+  /* USER CODE END 1 */
+  /* MCU Configuration--------------------------------------------------------*/
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+  /* USER CODE BEGIN Init */
+  /* USER CODE END Init */
+  /* Configure the system clock */
+  SystemClock_Config();
+  /* USER CODE BEGIN SysInit */
+  /* USER CODE END SysInit */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_USART2_UART_Init();
+  MX_ADC1_Init();
+  MX_ADC2_Init();
+  /* USER CODE BEGIN 2 */
+  /* USER CODE END 2 */
+  HAL_UART_Receive_DMA(&huart2 , buf , sizeof(buf));
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+	while (1) {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+	}
+
+  /* USER CODE END 3 */
+}
+```
+
+この処理は，
+
+1. ```HAL_UART_Receive_DMA```でDMAを用いた受信を開始
+2. バッファが一杯になったら呼び出される関数```HAL_UART_RxCpltCallback```内で```HAL_UART_Transmit```を用いてPCに送信
+
+という処理を繰り返す．
+
+### 課題6
 
 バッファが**半分**埋まるごとにPCに出力する処理を書き，実行してください．
 

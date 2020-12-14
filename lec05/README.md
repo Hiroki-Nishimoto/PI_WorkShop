@@ -7,7 +7,7 @@
 [演習2](../lec02)を思い出して欲しい．そこではwhile文の中でスイッチが押されているかを検知し処理を行っていた．
 今回はGPIOに入力が来たとき検知するというEXTI割り込みという機能を用いてその処理をスマートに書く．
 
-## CubeMXでの設定
+## ハードウェア設定
 
 1. P12を右クリックし[GPIO_EXTI12]に設定
 2. P12を左クリックし[Enter User Label]で任意のラベルを入力．（今回はSW1とした）
@@ -40,7 +40,7 @@
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 ```
 
-実際にエッジを検出した際は，```src/stm32f3xx_it.c```内の```EXTI15_10_IRQHandler```が呼び出される．
+実際にエッジを検出した際は，```Core/Src/stm32f3xx_it.c```内の```EXTI15_10_IRQHandler```が呼び出される．
 
 ```c
 void EXTI15_10_IRQHandler(void)
@@ -115,17 +115,34 @@ void hoge(){
 
 今回はこの性質を用い，```main.c```内に```void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)```を宣言し，そこに割り込みの処理を書く．
 
+下記コードはEXTI_Callbackを用いて作成した，SW1押しているとき間LD3が点灯し，離すと消灯する機能の一部です．
+```c
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+}
+
+/* USER CODE END 0 */
+
+/**
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void) {
+	/* USER CODE BEGIN 1 */
+
+```
+
 演習5の解説は以上です．
 
 
-
 # 課題5
-1. GPIO割り込みを用いて演習2同様にSW1押しているとき間LD3が点灯し，離すと消灯するプログラムを作成してください．
-2. PA8も同様に[GPIO_EXTI]とし，EXTIラインを有効化し，ラベルをSW2とし，SW1とSW2ともに[External Interrupt Mode with Falling edge trigger detection]（立下り検知）とし，	
+1. 上記コードをコピー&ペーストして，SW1押しているとき間LD3が点灯し，離すと消灯する機能を動作させてください
+2. 1の完了後，ソフトウェア部を書き換えずハードウェア設定画面を弄って，ボタンを押して離すと点灯，もう一度離すと消灯する機能に変更してください
+3. PA8も同様に[GPIO_EXTI]とし，EXTIラインを有効化し，ラベルをSW2とし，SW1とSW2ともに[External Interrupt Mode with Falling edge trigger detection]（立下り検知）とし，	
    - SW1が押されたとき+1
    - SW2が押されたとき-1
    - どちらが押されてもカウンターの値をターミナル表示
 
 というプログラムを作成してください．
 
-[実装例はこちら](./main.c)
+[課題5.3の実装例はこちら](./main.c)

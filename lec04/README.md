@@ -2,7 +2,7 @@
 
 今回はピンからの入力電圧を連続値(アナログ)で受け取るためのペリフェラル，Analog Digital Converter:ADCを用いて，Nucleoで取得したセンサの値をPCのターミナル上で表示する．
 
-## CubeMXでの設定
+## ハードウェア初期化画面での設定
 
 ### ADCの設定
 
@@ -23,32 +23,39 @@
 
 ![ピン割り当て](./img/pin_assign.png)
 
-確認できたら[GENERATE CODE]する．
 
-## SW4STM32でのコーディング
-
+## コーディング
 
 ADCの値の取得はGPIOのようにワンラインではできない．
 ```HAL_ADCEx_Calibration_Start```でキャリブレーション，```HAL_ADC_Start```でADCのスタートを行い，
 ```HAL_ADC_PollForConversion```で変換終了を確認してから```HAL_ADC_GetValue```で値を受け取らなければ，適切な値を受け取れない．
 
-次のコードはHALハンドルが```hadc1```のADCチャンネルでの値取得の例である．
+次のコードはHALハンドルが```hadc1```のADCチャンネルで値を取得し，UartでPCに送信するサンプルコードである．
 
 ```c
-HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-HAL_ADC_Start(&hadc1);
-int adc1_val = 0;
-while(1){
-    if( HAL_ADC_PollForConversion(&hadc1 , 10 ) == HAL_OK )
-	    adc1_val = HAL_ADC_GetValue(&hadc1);
-}
-HAL_ADC_Stop(&hadc1);
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
+	HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+	HAL_ADC_Start(&hadc1);
+	uint32_t adc1_val = 0;
+	uint8_t  buf[10] = {};
+	while (1) {
+		adc1_val = HAL_ADC_GetValue(&hadc1);
+		sprintf(buf , "%d\n\r" , adc1_val);
+		HAL_UART_Transmit( &huart2 , buf , sizeof(buf) , 0xffff);
+		HAL_Delay(1000);
+		/* USER CODE END WHILE */
+
+		/* USER CODE BEGIN 3 */
+	}
+	HAL_ADC_Stop(&hadc1);
+    /* USER CODE END 3 */
 ```
 
 演習4の解説は以上です．
 
-課題4
-- 1秒ごとに温度センサの値を取得し，ターミナルに表示してください
-- PA5に接続された照度センサも同様に有効化し，温度・照度センサの値を1秒ごとにターミナルに表示してください．
+###  課題4
+
+PA5に接続された照度センサも同様に有効化し，温度・照度センサの値を1秒ごとにターミナルに表示してください．
 
 [実装例はこちら](./main.c)
