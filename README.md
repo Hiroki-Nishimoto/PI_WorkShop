@@ -2,7 +2,7 @@
 
 サイエンスミーティングワークショップ マイコンプログラミング編の資料です．
 
-この講習ではCubeMXとSW4STM32を用いて，マイコンボードNucleo32f303k8のプログラミングを経て，マイコン開発の基礎を学びます．
+この講習ではCubeIDEを用いて，マイコンボードNucleo32f303k8のプログラミングを経て，マイコン開発の基礎を学びます．
 
 - [演習1 Lチカ](./lec01)
 - [演習2 Lチカ with スイッチ](./lec02)
@@ -10,7 +10,8 @@
 - [演習4 ADC](./lec04)
 - [演習5 外部割り込み](./lec05)
 - [演習6 Direct Memory Access](./lec06)
-
+- [演習7 PI機器への接続(SPI通信)](./lec07)
+- 
 <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
 All rights reserved.</center></h2>
 
